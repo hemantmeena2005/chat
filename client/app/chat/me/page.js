@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { User, Edit, Trash2, LogOut, Image as ImageIcon } from "lucide-react";
 import { io } from "socket.io-client";
 
-const SOCKET_URL = "http://localhost:5050";
+const SOCKET_URL = "https://chat-production-4708.up.railway.app";
 
 export default function ProfilePage() {
   const [username, setUsername] = useState("");

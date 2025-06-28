@@ -21,7 +21,7 @@ export default function SignupPage() {
     }
     setLoading(true);
     try {
-      const res = await fetch("http://localhost:5050/signup", {
+      const res = await fetch("https://chat-production-4708.up.railway.app/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password, profilePic })

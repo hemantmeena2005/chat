@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { io } from "socket.io-client";
 import { Search, MessageSquare, UserPlus, Users, Check, Clock } from "lucide-react";
 
-const API_URL = "http://localhost:5050"; // Change if your server runs on a different port
+const API_URL = "https://chat-production-4708.up.railway.app"; // Change if your server runs on a different port
 
 export default function SearchPage() {
   const [query, setQuery] = useState("");

@@ -33,7 +33,7 @@ export default function FeedPage() {
       const pics = {};
       await Promise.all(authors.map(async (user) => {
         try {
-          const res = await fetch(`http://localhost:5050/user/${user}`);
+          const res = await fetch(`https://chat-production-4708.up.railway.app/user/${user}`);
           if (res.ok) {
             const data = await res.json();
             pics[user] = data.profilePic || null;
@@ -48,7 +48,7 @@ export default function FeedPage() {
   async function fetchPosts() {
     setLoading(true);
     try {
-      const res = await fetch("http://localhost:5050/posts");
+      const res = await fetch("https://chat-production-4708.up.railway.app/posts");
       const data = await res.json();
       setPosts(data);
     } catch {
@@ -60,7 +60,7 @@ export default function FeedPage() {
   async function handleLike(postId) {
     setLikeLoading((prev) => ({ ...prev, [postId]: true }));
     try {
-      await fetch(`http://localhost:5050/posts/${postId}/like`, {
+      await fetch(`https://chat-production-4708.up.railway.app/posts/${postId}/like`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username: currentUser })
@@ -75,7 +75,7 @@ export default function FeedPage() {
     if (!text) return;
     setCommentLoading((prev) => ({ ...prev, [postId]: true }));
     try {
-      await fetch(`http://localhost:5050/posts/${postId}/comment`, {
+      await fetch(`https://chat-production-4708.up.railway.app/posts/${postId}/comment`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username: currentUser, text })
@@ -105,7 +105,7 @@ export default function FeedPage() {
       formData.append("author", localStorage.getItem("username"));
       if (imageFile) formData.append("imageFile", imageFile);
       if (caption) formData.append("caption", caption);
-      const res = await fetch("http://localhost:5050/posts", {
+      const res = await fetch("https://chat-production-4708.up.railway.app/posts", {
         method: "POST",
         body: formData
       });
@@ -165,7 +165,7 @@ export default function FeedPage() {
               </div>
               {post.image && (
                 <img
-                  src={post.image.startsWith('http') ? post.image : `http://localhost:5050${post.image}`}
+                  src={post.image.startsWith('http') ? post.image : `https://chat-production-4708.up.railway.app${post.image}`}
                   alt="Post"
                   className="w-full object-cover max-h-80 bg-gray-100"
                 />

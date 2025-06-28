@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { io } from "socket.io-client";
 import { MessageSquare, ArrowRight } from "lucide-react";
 
-const SOCKET_URL = "http://localhost:5050";
+const SOCKET_URL = "https://chat-production-4708.up.railway.app";
 
 export default function MessagesPage() {
   const [conversations, setConversations] = useState([]);
@@ -53,7 +53,7 @@ export default function MessagesPage() {
       const pics = {};
       await Promise.all(users.map(async (user) => {
         try {
-          const res = await fetch(`http://localhost:5050/user/${user}`);
+          const res = await fetch(`https://chat-production-4708.up.railway.app/user/${user}`);
           if (res.ok) {
             const data = await res.json();
             pics[user] = data.profilePic || null;

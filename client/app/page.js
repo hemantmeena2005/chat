@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { MessageSquare, Users, Search, ArrowRight, Plus, Image as ImageIcon, X } from "lucide-react";
 import { io } from "socket.io-client";
 
-const SOCKET_URL = "http://localhost:5050";
+const SOCKET_URL = "https://chat-production-4708.up.railway.app";
 
 export default function Home() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -83,7 +83,7 @@ export default function Home() {
       formData.append("author", localStorage.getItem("username"));
       if (imageFile) formData.append("imageFile", imageFile);
       if (caption) formData.append("caption", caption);
-      const res = await fetch("http://localhost:5050/posts", {
+      const res = await fetch("https://chat-production-4708.up.railway.app/posts", {
         method: "POST",
         body: formData
       });

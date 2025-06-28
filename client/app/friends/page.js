@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { io } from "socket.io-client";
 import { Users, UserPlus, UserCheck, Check, X, MessageSquare } from "lucide-react";
 
-const API_URL = "http://localhost:5050";
+const API_URL = "https://chat-production-4708.up.railway.app";
 
 export default function FriendsPage() {
   const [requests, setRequests] = useState([]);
@@ -21,7 +21,7 @@ export default function FriendsPage() {
       const pics = {};
       await Promise.all(users.map(async (user) => {
         try {
-          const res = await fetch(`http://localhost:5050/user/${user}`);
+          const res = await fetch(`https://chat-production-4708.up.railway.app/user/${user}`);
           if (res.ok) {
             const data = await res.json();
             pics[user] = data.profilePic || null;

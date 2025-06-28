@@ -4,7 +4,7 @@ import { useParams, useRouter } from "next/navigation";
 import { io } from "socket.io-client";
 import { Send, ArrowLeft, User } from "lucide-react";
 
-const SOCKET_URL = "http://localhost:5050";
+const SOCKET_URL = "https://chat-production-4708.up.railway.app";
 
 export default function ChatPage() {
   const { username } = useParams();
@@ -46,7 +46,7 @@ export default function ChatPage() {
     // Fetch profilePic for chat partner
     async function fetchProfilePic() {
       try {
-        const res = await fetch(`http://localhost:5050/user/${username}`);
+        const res = await fetch(`https://chat-production-4708.up.railway.app/user/${username}`);
         if (res.ok) {
           const data = await res.json();
           setProfilePic(data.profilePic || null);

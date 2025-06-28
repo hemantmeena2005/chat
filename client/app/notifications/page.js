@@ -16,7 +16,7 @@ export default function NotificationsPage() {
   async function fetchNotifications() {
     setLoading(true);
     try {
-      const res = await fetch(`http://localhost:5050/notifications?username=${currentUser}`);
+      const res = await fetch(`https://chat-production-4708.up.railway.app/notifications?username=${currentUser}`);
       const data = await res.json();
       setNotifications(data);
       // Fetch profile pics for all senders
@@ -24,7 +24,7 @@ export default function NotificationsPage() {
       const pics = {};
       await Promise.all(senders.map(async (user) => {
         try {
-          const res = await fetch(`http://localhost:5050/user/${user}`);
+          const res = await fetch(`https://chat-production-4708.up.railway.app/user/${user}`);
           if (res.ok) {
             const d = await res.json();
             pics[user] = d.profilePic || null;
@@ -83,7 +83,7 @@ export default function NotificationsPage() {
               </div>
               {n.postId && n.postId.image && (
                 <img
-                  src={n.postId.image.startsWith('http') ? n.postId.image : `http://localhost:5050${n.postId.image}`}
+                  src={n.postId.image.startsWith('http') ? n.postId.image : `https://chat-production-4708.up.railway.app${n.postId.image}`}
                   alt="Post preview"
                   className="w-14 h-14 object-cover rounded-lg border ml-2"
                 />

@@ -5,7 +5,7 @@ import { Home, Search, MessageSquare, Users, User, Plus, Bell } from "lucide-rea
 import { useEffect, useState } from "react";
 import { io } from "socket.io-client";
 
-const SOCKET_URL = "http://localhost:5050";
+const SOCKET_URL = "https://chat-production-4708.up.railway.app";
 
 export default function BottomNav() {
   const pathname = usePathname();
@@ -30,7 +30,7 @@ export default function BottomNav() {
       setHasNotification(true);
     });
     // Fetch unread notifications on mount
-    fetch(`http://localhost:5050/notifications?username=${currentUser}`)
+    fetch(`https://chat-production-4708.up.railway.app/notifications?username=${currentUser}`)
       .then(res => res.json())
       .then(data => {
         if (data && data.some(n => n.read === false)) setHasNotification(true);
@@ -40,7 +40,7 @@ export default function BottomNav() {
     const handleRoute = () => {
       if (window.location.pathname === "/notifications") {
         // Mark all as read
-        fetch("http://localhost:5050/notifications/mark-read", {
+        fetch("https://chat-production-4708.up.railway.app/notifications/mark-read", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ username: currentUser })
