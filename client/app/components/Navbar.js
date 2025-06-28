@@ -4,6 +4,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState, useRef } from "react";
 import NotificationToast from "./NotificationToast";
 import { io } from "socket.io-client";
+import { MessageSquare } from "lucide-react";
 
 const SOCKET_URL = "http://localhost:5050";
 
@@ -133,62 +134,14 @@ export default function Navbar() {
         </div>
 
         {/* Mobile Menu Button */}
-        <button
-          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+        <Link
+          href="/messages"
           className="md:hidden p-2 rounded-lg hover:bg-gray-100"
+          aria-label="Messages"
         >
-          <div className="w-6 h-6 flex flex-col justify-center items-center">
-            <div className={`w-5 h-0.5 bg-black transition-all duration-300 ${isMobileMenuOpen ? 'rotate-45 translate-y-1' : ''}`}></div>
-            <div className={`w-5 h-0.5 bg-black my-1 transition-all duration-300 ${isMobileMenuOpen ? 'opacity-0' : ''}`}></div>
-            <div className={`w-5 h-0.5 bg-black transition-all duration-300 ${isMobileMenuOpen ? '-rotate-45 -translate-y-1' : ''}`}></div>
-          </div>
-        </button>
+          <MessageSquare size={28} className="text-black" />
+        </Link>
       </nav>
-
-      {/* Mobile Menu */}
-      {isMobileMenuOpen && (
-        <div className="md:hidden bg-white border-b border-gray-200 shadow-lg">
-          <div className="px-4 py-2 space-y-1">
-            <NavLink href="/search">Search</NavLink>
-            {username && (
-              <>
-                <NavLink href="/messages">Messages</NavLink>
-                <div className="relative">
-                  <NavLink href="/friends">Friend Requests</NavLink>
-                  {notificationCount > 0 && (
-                    <span className="absolute top-2 right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                      {notificationCount}
-                    </span>
-                  )}
-                </div>
-                <NavLink href={`/chat/${username}`}>My Chat</NavLink>
-              </>
-            )}
-            {username ? (
-              <>
-                <div className="border-t border-gray-200 pt-2 mt-2">
-                  <div className="px-3 py-2 text-sm text-gray-600">
-                    {username}
-                  </div>
-                  <button 
-                    onClick={handleLogout} 
-                    className="w-full text-left px-3 py-2 rounded-lg hover:bg-gray-100 transition text-red-600"
-                  >
-                    Logout
-                  </button>
-                </div>
-              </>
-            ) : (
-              <>
-                <div className="border-t border-gray-200 pt-2 mt-2">
-                  <Link href="/login" className="block px-3 py-2 rounded-lg hover:bg-gray-100 text-black">Login</Link>
-                  <Link href="/signup" className="block px-3 py-2 rounded-lg hover:bg-gray-100 text-black">Signup</Link>
-                </div>
-              </>
-            )}
-          </div>
-        </div>
-      )}
     </>
   );
 } 

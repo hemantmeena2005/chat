@@ -1,7 +1,8 @@
 "use client";
 import { useEffect, useState, useRef } from "react";
+import { useRouter } from "next/navigation";
 import { io } from "socket.io-client";
-import { Users, UserPlus, UserCheck, Check, X } from "lucide-react";
+import { Users, UserPlus, UserCheck, Check, X, MessageSquare } from "lucide-react";
 
 const API_URL = "http://localhost:5050";
 
@@ -9,8 +10,31 @@ export default function FriendsPage() {
   const [requests, setRequests] = useState([]);
   const [friends, setFriends] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [profilePics, setProfilePics] = useState({});
   const currentUser = typeof window !== "undefined" ? localStorage.getItem("username") : null;
   const socketRef = useRef(null);
+  const router = useRouter();
+
+  // Fetch profile pictures for users
+  useEffect(() => {
+    async function fetchProfilePics(users) {
+      const pics = {};
+      await Promise.all(users.map(async (user) => {
+        try {
+          const res = await fetch(`http://localhost:5050/user/${user}`);
+          if (res.ok) {
+            const data = await res.json();
+            pics[user] = data.profilePic || null;
+          }
+        } catch {}
+      }));
+      setProfilePics(pics);
+    }
+    const allUsers = [...requests, ...friends];
+    if (allUsers.length > 0) {
+      fetchProfilePics(allUsers);
+    }
+  }, [requests, friends]);
 
   useEffect(() => {
     if (!currentUser) return;
@@ -42,6 +66,10 @@ export default function FriendsPage() {
     setRequests((prev) => prev.filter((u) => u !== from));
   };
 
+  const handleChat = (friend) => {
+    router.push(`/chat/${friend}`);
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-2xl mx-auto p-4">
@@ -71,8 +99,17 @@ export default function FriendsPage() {
                 {requests.map((from) => (
                   <div key={from} className="flex items-center justify-between p-4 rounded-lg border border-gray-100 bg-gray-50">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center">
-                        <UserPlus size={20} className="text-orange-600" />
+                      <div className="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center overflow-hidden">
+                        {profilePics[from] ? (
+                          <img
+                            src={profilePics[from]}
+                            alt={from + " profile"}
+                            className="w-10 h-10 object-cover rounded-full"
+                            onError={e => { e.target.onerror = null; e.target.src = '/public/file.svg'; }}
+                          />
+                        ) : (
+                          <UserPlus size={20} className="text-orange-600" />
+                        )}
                       </div>
                       <div>
                         <p className="font-semibold text-gray-900">{from}</p>
@@ -121,14 +158,32 @@ export default function FriendsPage() {
             ) : (
               <div className="space-y-3">
                 {friends.map((friend) => (
-                  <div key={friend} className="flex items-center gap-3 p-4 rounded-lg border border-gray-100 bg-gray-50">
-                    <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
-                      <UserCheck size={20} className="text-green-600" />
+                  <div key={friend} className="flex items-center justify-between p-4 rounded-lg border border-gray-100 bg-gray-50">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center overflow-hidden">
+                        {profilePics[friend] ? (
+                          <img
+                            src={profilePics[friend]}
+                            alt={friend + " profile"}
+                            className="w-10 h-10 object-cover rounded-full"
+                            onError={e => { e.target.onerror = null; e.target.src = '/public/file.svg'; }}
+                          />
+                        ) : (
+                          <UserCheck size={20} className="text-green-600" />
+                        )}
+                      </div>
+                      <div>
+                        <p className="font-semibold text-gray-900">{friend}</p>
+                        <p className="text-sm text-gray-500">Friend</p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="font-semibold text-gray-900">{friend}</p>
-                      <p className="text-sm text-gray-500">Friend</p>
-                    </div>
+                    <button
+                      className="bg-blue-500 text-white p-2 rounded-lg hover:bg-blue-600 transition-colors"
+                      onClick={() => handleChat(friend)}
+                      title="Start chat"
+                    >
+                      <MessageSquare size={16} />
+                    </button>
                   </div>
                 ))}
               </div>

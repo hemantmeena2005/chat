@@ -2,22 +2,42 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { UserPlus, User, ArrowRight } from "lucide-react";
+import { UserPlus, User, ArrowRight, Image as ImageIcon, Lock } from "lucide-react";
 
 export default function SignupPage() {
   const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [profilePic, setProfilePic] = useState("");
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
   const router = useRouter();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (username.trim()) {
-      setLoading(true);
-      // Simulate a small delay for better UX
-      setTimeout(() => {
-        localStorage.setItem("username", username);
-        router.push("/search");
-      }, 500);
+    setError("");
+    if (!username.trim() || !password.trim()) {
+      setError("Username and password are required.");
+      return;
+    }
+    setLoading(true);
+    try {
+      const res = await fetch("http://localhost:5050/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password, profilePic })
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error || "Signup failed");
+        setLoading(false);
+        return;
+      }
+      localStorage.setItem("username", data.username);
+      if (data.profilePic) localStorage.setItem("profilePic", data.profilePic);
+      router.push("/search");
+    } catch (err) {
+      setError("Signup failed. Please try again.");
+      setLoading(false);
     }
   };
 
@@ -55,10 +75,43 @@ export default function SignupPage() {
                   This will be your display name on the platform
                 </p>
               </div>
-              
+              <div>
+                <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+                  Password
+                </label>
+                <div className="relative">
+                  <Lock size={20} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                  <input
+                    id="password"
+                    type="password"
+                    placeholder="Create a password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400 text-black bg-white"
+                    required
+                  />
+                </div>
+              </div>
+              <div>
+                <label htmlFor="profilePic" className="block text-sm font-medium text-gray-700 mb-2">
+                  Profile Picture URL (optional)
+                </label>
+                <div className="relative">
+                  <ImageIcon size={20} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                  <input
+                    id="profilePic"
+                    type="url"
+                    placeholder="https://example.com/your-pic.jpg"
+                    value={profilePic}
+                    onChange={(e) => setProfilePic(e.target.value)}
+                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400 text-black bg-white"
+                  />
+                </div>
+              </div>
+              {error && <div className="text-red-500 text-sm text-center">{error}</div>}
               <button
                 type="submit"
-                disabled={loading || !username.trim()}
+                disabled={loading || !username.trim() || !password.trim()}
                 className="w-full bg-green-600 text-white py-3 rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-semibold flex items-center justify-center gap-2"
               >
                 {loading ? (

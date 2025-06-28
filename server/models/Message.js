@@ -6,6 +6,7 @@ const messageSchema = new mongoose.Schema({
   text: { type: String, required: true },
   unread: { type: Boolean, default: true },
   deletedBy: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+  replyTo: { type: mongoose.Schema.Types.ObjectId, ref: 'Message', default: null },
   createdAt: { type: Date, default: Date.now }
 });
 

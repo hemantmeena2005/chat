@@ -10,6 +10,7 @@ export default function MessagesPage() {
   const [conversations, setConversations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [unreadCounts, setUnreadCounts] = useState({});
+  const [profilePics, setProfilePics] = useState({});
   const router = useRouter();
   const currentUser = typeof window !== "undefined" ? localStorage.getItem("username") : null;
   const socketRef = useRef(null);
@@ -46,6 +47,27 @@ export default function MessagesPage() {
     // eslint-disable-next-line
   }, [currentUser]);
 
+  // Fetch profile pictures for users in conversations
+  useEffect(() => {
+    async function fetchProfilePics(users) {
+      const pics = {};
+      await Promise.all(users.map(async (user) => {
+        try {
+          const res = await fetch(`http://localhost:5050/user/${user}`);
+          if (res.ok) {
+            const data = await res.json();
+            pics[user] = data.profilePic || null;
+          }
+        } catch {}
+      }));
+      setProfilePics(pics);
+    }
+    if (conversations.length > 0) {
+      const users = conversations.map(c => c.user);
+      fetchProfilePics(users);
+    }
+  }, [conversations]);
+
   const handleChat = (user) => {
     router.push(`/chat/${user}`);
   };
@@ -81,18 +103,26 @@ export default function MessagesPage() {
                     className="flex items-center justify-between p-4 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer border border-gray-100"
                     onClick={() => handleChat(user)}
                   >
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="font-semibold text-gray-900 truncate">{user}</span>
-                        {unreadCounts && unreadCounts[user] > 0 && (
-                          <span className="bg-red-500 text-white text-xs px-2 py-1 rounded-full font-bold">
-                            {unreadCounts[user]}
-                          </span>
-                        )}
+                    <div className="flex items-center gap-3 min-w-0">
+                      <img
+                        src={profilePics[user] || '/public/file.svg'}
+                        alt={user + " profile"}
+                        className="w-10 h-10 rounded-full object-cover bg-gray-200 border"
+                        onError={e => { e.target.onerror = null; e.target.src = '/public/file.svg'; }}
+                      />
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="font-semibold text-gray-900 truncate">{user}</span>
+                          {unreadCounts && unreadCounts[user] > 0 && (
+                            <span className="bg-red-500 text-white text-xs px-2 py-1 rounded-full font-bold">
+                              {unreadCounts[user]}
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-sm text-gray-600 truncate max-w-xs md:max-w-md">
+                          {lastMsg.text}
+                        </p>
                       </div>
-                      <p className="text-sm text-gray-600 truncate max-w-xs md:max-w-md">
-                        {lastMsg.text}
-                      </p>
                     </div>
                     <div className="flex items-center gap-2 ml-4">
                       <ArrowRight size={20} className="text-gray-400" />

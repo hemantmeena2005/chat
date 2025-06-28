@@ -14,6 +14,10 @@ export default function ChatPage() {
   const messagesEndRef = useRef(null);
   const currentUser = typeof window !== "undefined" ? localStorage.getItem("username") : null;
   const socketRef = useRef(null);
+  const [profilePic, setProfilePic] = useState(null);
+  const [isTyping, setIsTyping] = useState(false);
+  const typingTimeout = useRef(null);
+  const [replyTo, setReplyTo] = useState(null);
 
   useEffect(() => {
     if (!currentUser) return;
@@ -32,6 +36,24 @@ export default function ChatPage() {
         setMessages((prev) => [...prev, msg]);
       }
     });
+    // Typing indicator
+    socketRef.current.on("typing", ({ from }) => {
+      if (from === username) setIsTyping(true);
+    });
+    socketRef.current.on("stop_typing", ({ from }) => {
+      if (from === username) setIsTyping(false);
+    });
+    // Fetch profilePic for chat partner
+    async function fetchProfilePic() {
+      try {
+        const res = await fetch(`http://localhost:5050/user/${username}`);
+        if (res.ok) {
+          const data = await res.json();
+          setProfilePic(data.profilePic || null);
+        }
+      } catch {}
+    }
+    fetchProfilePic();
     return () => {
       if (socketRef.current) {
         socketRef.current.disconnect();
@@ -45,12 +67,32 @@ export default function ChatPage() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
+  const handleInputChange = (e) => {
+    setInput(e.target.value);
+    if (socketRef.current) {
+      socketRef.current.emit("typing", { to: username });
+      if (typingTimeout.current) clearTimeout(typingTimeout.current);
+      typingTimeout.current = setTimeout(() => {
+        socketRef.current.emit("stop_typing", { to: username });
+      }, 1200);
+    }
+  };
+
   const handleSend = (e) => {
     e.preventDefault();
     if (input.trim() && currentUser && socketRef.current) {
-      socketRef.current.emit("send_message", { to: username, text: input });
+      socketRef.current.emit("send_message", { to: username, text: input, replyTo: replyTo?._id });
       setInput("");
+      setReplyTo(null);
     }
+  };
+
+  const handleReply = (msg) => {
+    setReplyTo(msg);
+  };
+
+  const handleCancelReply = () => {
+    setReplyTo(null);
   };
 
   const formatTime = (timestamp) => {
@@ -60,7 +102,7 @@ export default function ChatPage() {
   };
 
   return (
-    <div className="flex flex-col h-screen bg-gray-50">
+    <div className="flex flex-col h-screen bg-gray-50 pb-14 md:pb-0">
       {/* Header */}
       <div className="bg-white border-b border-gray-200 px-4 py-3 flex items-center gap-3">
         <button
@@ -70,8 +112,17 @@ export default function ChatPage() {
           <ArrowLeft size={20} />
         </button>
         <div className="flex items-center gap-3 flex-1">
-          <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-            <User size={20} className="text-blue-600" />
+          <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center overflow-hidden">
+            {profilePic ? (
+              <img
+                src={profilePic}
+                alt={username + ' profile'}
+                className="w-10 h-10 object-cover rounded-full"
+                onError={e => { e.target.onerror = null; e.target.src = '/public/file.svg'; }}
+              />
+            ) : (
+              <User size={20} className="text-blue-600" />
+            )}
           </div>
           <div>
             <h1 className="font-semibold text-gray-900">{username}</h1>
@@ -98,12 +149,19 @@ export default function ChatPage() {
             >
               <div className={`max-w-xs md:max-w-md lg:max-w-lg ${msg.from === currentUser ? "order-2" : "order-1"}`}>
                 <div
-                  className={`px-4 py-3 rounded-2xl ${
+                  className={`px-4 py-3 rounded-2xl relative group cursor-pointer ${
                     msg.from === currentUser
                       ? "bg-blue-600 text-white rounded-br-md"
                       : "bg-white text-gray-900 rounded-bl-md border border-gray-200"
                   }`}
+                  onClick={() => handleReply(msg)}
+                  title="Reply to this message"
                 >
+                  {msg.replyTo && (
+                    <div className="text-xs text-gray-500 italic border-l-4 border-blue-400 pl-2 mb-1">
+                      Replying to: {msg.replyTo.text}
+                    </div>
+                  )}
                   <p className="text-sm break-words">{msg.text}</p>
                   {msg.timestamp && (
                     <p className={`text-xs mt-1 ${
@@ -112,13 +170,27 @@ export default function ChatPage() {
                       {formatTime(msg.timestamp)}
                     </p>
                   )}
+                  <span className="hidden group-hover:block absolute top-1 right-2 text-xs text-blue-400">↩</span>
                 </div>
               </div>
             </div>
           ))
         )}
         <div ref={messagesEndRef} />
+        {isTyping && (
+          <div className="text-xs text-gray-500 italic px-2 pb-2">{username} is typing...</div>
+        )}
       </div>
+
+      {/* Reply Preview */}
+      {replyTo && (
+        <div className="flex items-center gap-2 bg-blue-50 border-l-4 border-blue-400 px-3 py-2 mb-2 rounded">
+          <div className="flex-1 text-xs text-gray-700 truncate">
+            Replying to: <span className="italic">{replyTo.text}</span>
+          </div>
+          <button onClick={handleCancelReply} className="text-blue-500 hover:text-blue-700 text-xs">Cancel</button>
+        </div>
+      )}
 
       {/* Input Form */}
       <div className="bg-white border-t border-gray-200 p-4">
@@ -126,7 +198,7 @@ export default function ChatPage() {
           <input
             type="text"
             value={input}
-            onChange={(e) => setInput(e.target.value)}
+            onChange={handleInputChange}
             className="flex-1 border border-gray-300 rounded-full px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-400 text-black bg-gray-50"
             placeholder="Type a message..."
           />

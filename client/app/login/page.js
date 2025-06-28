@@ -2,22 +2,41 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { LogIn, User, ArrowRight } from "lucide-react";
+import { LogIn, User, ArrowRight, Lock } from "lucide-react";
 
 export default function LoginPage() {
   const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
   const router = useRouter();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (username.trim()) {
-      setLoading(true);
-      // Simulate a small delay for better UX
-      setTimeout(() => {
-        localStorage.setItem("username", username);
-        router.push("/search");
-      }, 500);
+    setError("");
+    if (!username.trim() || !password.trim()) {
+      setError("Username and password are required.");
+      return;
+    }
+    setLoading(true);
+    try {
+      const res = await fetch("http://localhost:5050/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password })
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error || "Login failed");
+        setLoading(false);
+        return;
+      }
+      localStorage.setItem("username", data.username);
+      if (data.profilePic) localStorage.setItem("profilePic", data.profilePic);
+      router.push("/search");
+    } catch (err) {
+      setError("Login failed. Please try again.");
+      setLoading(false);
     }
   };
 
@@ -52,10 +71,27 @@ export default function LoginPage() {
                   />
                 </div>
               </div>
-              
+              <div>
+                <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+                  Password
+                </label>
+                <div className="relative">
+                  <Lock size={20} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                  <input
+                    id="password"
+                    type="password"
+                    placeholder="Enter your password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 text-black bg-white"
+                    required
+                  />
+                </div>
+              </div>
+              {error && <div className="text-red-500 text-sm text-center">{error}</div>}
               <button
                 type="submit"
-                disabled={loading || !username.trim()}
+                disabled={loading || !username.trim() || !password.trim()}
                 className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-semibold flex items-center justify-center gap-2"
               >
                 {loading ? (
