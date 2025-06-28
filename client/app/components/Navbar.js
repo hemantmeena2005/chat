@@ -6,7 +6,7 @@ import NotificationToast from "./NotificationToast";
 import { io } from "socket.io-client";
 import { MessageSquare } from "lucide-react";
 
-const SOCKET_URL = "http://localhost:5050";
+const SOCKET_URL = "https://chat-production-4708.up.railway.app";
 
 export default function Navbar() {
   const router = useRouter();
