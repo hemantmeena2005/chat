@@ -37,6 +37,57 @@ app.get('/users', async (req, res) => {
   res.json(users.map(u => u.username));
 });
 
+// Signup endpoint
+app.post('/signup', async (req, res) => {
+  try {
+    const { username, password, profilePic } = req.body;
+    if (!username || !password) {
+      return res.status(400).json({ error: 'Username and password are required.' });
+    }
+    const existing = await User.findOne({ username });
+    if (existing) {
+      return res.status(409).json({ error: 'Username already exists.' });
+    }
+    const user = new User({ username, password, profilePic });
+    await user.save();
+    res.status(201).json({ username: user.username, profilePic: user.profilePic });
+  } catch (err) {
+    res.status(500).json({ error: 'Signup failed.' });
+  }
+});
+
+// Login endpoint
+app.post('/login', async (req, res) => {
+  try {
+    const { username, password } = req.body;
+    if (!username || !password) {
+      return res.status(400).json({ error: 'Username and password are required.' });
+    }
+    const user = await User.findOne({ username });
+    if (!user) {
+      return res.status(401).json({ error: 'Invalid username or password.' });
+    }
+    const isMatch = await user.comparePassword(password);
+    if (!isMatch) {
+      return res.status(401).json({ error: 'Invalid username or password.' });
+    }
+    res.json({ username: user.username, profilePic: user.profilePic });
+  } catch (err) {
+    res.status(500).json({ error: 'Login failed.' });
+  }
+});
+
+// Get user profile by username
+app.get('/user/:username', async (req, res) => {
+  try {
+    const user = await User.findOne({ username: req.params.username }).select('username profilePic');
+    if (!user) return res.status(404).json({ error: 'User not found' });
+    res.json(user);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch user profile' });
+  }
+});
+
 // Socket.io events
 io.on('connection', (socket) => {
   let currentUser = null;
